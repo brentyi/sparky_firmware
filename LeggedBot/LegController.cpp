@@ -1,8 +1,10 @@
 #include <stdint.h>
+#include <PID_v1.h>
+#include "Configuration.h"
 #include "LegController.h"
 
 LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
-   
+   return;
 }
 
 /**
@@ -10,7 +12,7 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
  * @returns Control effort, -1.0 to 1.0
  */
 float LegController::calculateEffort() {
-  return 0;
+  return 0.50;
 }
 
 /**

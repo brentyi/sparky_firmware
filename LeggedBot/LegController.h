@@ -24,8 +24,8 @@ class LegController {
     ControlMode mode_;
     ControlMode prev_mode_;
 
-    PID position_pid_;
-    PID velocity_pid_;
+    //PID position_pid_;
+    //PID velocity_pid_;
 
     float position_setpoint_;
     float velocity_setpoint_;
