@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <math.h>
 #include "GaitController.h"
 #include "Configuration.h"
 
@@ -19,7 +20,7 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
   pwm_ = new Adafruit_PWMServoDriver(config->pca9685_address);
   Serial.println("begino"); 
   pwm_->begin();
-  pwm_->setPWMFreq(1600);  // This is the maximum PWM frequency
+  pwm_->setPWMFreq(800);  // This is the maximum PWM frequency
 
   // disable motors if battery voltage too low (ie powered by USB)
   pinMode(config_->batt_pin, INPUT);
@@ -36,21 +37,38 @@ void GaitController::update() {
       if (config_->invert_motor[x][y]) {
         effort = -effort;
       }
+
+      if (abs(effort) < 150) {
+        // save power
+        effort = 0;
+      }
+      
+      if (x != 1 || y != 1) {
+        //effort = 0;
+      } else {
+        Serial.print(effort);
+        Serial.print("\t");
+        Serial.print(leg_[x][y]->position_);
+        Serial.print("\t");
+        Serial.print(leg_[x][y]->position_setpoint_);
+        Serial.print("\t");
+        Serial.print("\t");
+      }
       
       setPin_(config_->hbridge_pin_a[x][y], effort > 0);
       setPin_(config_->hbridge_pin_b[x][y], effort < 0);
       pwm_->setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
     }
   }
+  Serial.println();
   return;
 }
 
 void GaitController::setPin_(uint8_t pin, bool value) {
-  if (pin < 100) {
+  if (pin < 100)
     digitalWrite(pin, value);
-  } else {
+  else
     pwm_->setPin(pin - 100, value ? 4095 : 0);
-  }
 }
 
 /**

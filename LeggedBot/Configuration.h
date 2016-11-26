@@ -32,31 +32,32 @@ enum LegSideY {
 
 typedef struct ConfigData {
   // Walking style
-  float gait_contact_angle{0.1};
-  float gait_angular_velocity{0.1};
+  float gait_contact_angle{0.5};
+  float gait_step_duration{2};
   float leg_radius{0};
 
   // Controls
-  float position_kp{10};
-  float position_ki{0};
-  float position_kd{0};
+  float position_kp{0.75};
+  float position_ki{0.5};
+  float position_kd{0.05};
 
-  float velocity_kp{10};
-  float velocity_ki{0};
-  float velocity_kd{0};
+  float velocity_kp{0.5};
+  float velocity_ki{0.25};
+  float velocity_kd{0.1};
 
   // Encoder offsets for each leg
-  uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{0, 0, 0 }, {0, 0, 0}};
+  uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};
+  
 
   // Shared angular offset (radians)
   float leg_offset{0};
 
   // I2C addresses
-  uint8_t as5048b_address[LEG_SIDES_X][LEG_SIDES_Y] {{0b1000000, 0b1000110, 0b1000101}, {0b1000100, 0b1000111, 0b1000010}};
+  uint8_t as5048b_address[LEG_SIDES_X][LEG_SIDES_Y] {{0b1000000, 0b1000110, 0b1000101}, {0b1000100, 0b1000111, 0b1000001}};
   uint8_t pca9685_address{0b1100000};
 
   // Invert values?
-  bool invert_encoder[LEG_SIDES_X][LEG_SIDES_Y] {{false, false, false}, {false, false, false}};
+  bool invert_encoder[LEG_SIDES_X][LEG_SIDES_Y] {{false, false, false}, {true, true, true}};
   bool invert_motor[LEG_SIDES_X][LEG_SIDES_Y] {{true, false, false}, {true, true, false}};
 
   //

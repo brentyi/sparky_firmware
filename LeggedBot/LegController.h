@@ -20,28 +20,36 @@ typedef enum ControlMode {
 } ControlMode;
 
 class LegController {
-  private:
+  public:
     ControlMode mode_;
     ControlMode prev_mode_;
 
-    //PID position_pid_;
-    //PID velocity_pid_;
+    PID* position_pid_;
+    PID* velocity_pid_;
 
-    float position_setpoint_;
-    float velocity_setpoint_;
+    // using doubles here because the pid library demands them :(
+    // (same as floats)
+    double position_;
+    double velocity_;
+    double position_setpoint_;
+    double velocity_setpoint_;
 
-    AMS_AS5048B encoder_;
+    double control_effort_;
 
-    float zero_;
+    float readPosition_();
 
-    uint16_t angle_raw_;
-    float angle_radians_;
+    uint32_t prev_time_;
+
+    uint16_t zero_;
+    bool invert_encoder_;
+
     float goal_angle_;
     uint32_t goal_time_;
 
     bool backwards_;
 
-  public:
+  //public:
+    AMS_AS5048B* encoder_;
     LegController(ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
     void setGoal(float destination, uint32_t arrival_time, bool backwards);
