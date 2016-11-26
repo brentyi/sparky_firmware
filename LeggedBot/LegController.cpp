@@ -59,11 +59,11 @@ float LegController::calculateEffort() {
 
 
   diff = position_setpoint_ - new_position;
-  /*if (diff > PI) {
-    new_position -= TWO_PI;
-  } else if (diff < PI) {
+  if (diff > PI) {
     new_position += TWO_PI;
-  }*/
+  } else if (diff < -PI) {
+    new_position -= TWO_PI;
+  }
   position_ = new_position;
 
   // Update control loops

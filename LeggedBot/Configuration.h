@@ -37,8 +37,11 @@ typedef struct ConfigData {
   float leg_radius{0};
 
   // Controls
-  float position_kp{0.75};
-  float position_ki{0.5};
+
+  // this could be a lot more aggressive, but there are some noise issues
+  // with the front left encoder that result in some bad oscillations
+  float position_kp{0.6};
+  float position_ki{0};
   float position_kd{0.05};
 
   float velocity_kp{0.5};
@@ -69,6 +72,9 @@ typedef struct ConfigData {
 
   // Voltage reading
   uint8_t batt_pin{A0};
+
+  // Button LED
+  uint8_t led_channel{8};
 
   // Motor driver enable
   uint8_t enable_pin{103};

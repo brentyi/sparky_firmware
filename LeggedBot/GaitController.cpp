@@ -5,7 +5,7 @@
 #include "Configuration.h"
 
 GaitController::GaitController(ConfigData* config) : config_(config) {
-  
+
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
     for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
       leg_[x][y] = new LegController(config_, static_cast<LegSideX>(x), static_cast<LegSideY>(y));
@@ -16,15 +16,29 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
         pinMode(config_->hbridge_pin_b[x][y], OUTPUT);
     }
   }
-  Serial.println("begiadsan"); 
-  pwm_ = new Adafruit_PWMServoDriver(config->pca9685_address);
-  Serial.println("begino"); 
+  pwm_ = new Adafruit_PWMServoDriver(config_->pca9685_address);
   pwm_->begin();
-  pwm_->setPWMFreq(800);  // This is the maximum PWM frequency
+  pwm_->setPWMFreq(1600);
 
   // disable motors if battery voltage too low (ie powered by USB)
+  bool power = analogRead(config_->batt_pin) > 450;
   pinMode(config_->batt_pin, INPUT);
-  setPin_(config_->enable_pin, (analogRead(config_->batt_pin) > 450));
+  setPin_(config_->enable_pin, power);
+  if (power) {
+    /*for (uint16_t i = 0; i < 4095; i += 3) {
+      pwm_->setPin(config_->led_channel, i);
+      delay(1);
+    }
+    delay(500);
+    pwm_->setPin(config_->led_channel, 0);
+    delay(500);*/
+    pwm_->setPin(config_->led_channel, 4095);
+    delay(500);
+    pwm_->setPin(config_->led_channel, 0);
+    delay(500);
+    pwm_->setPin(config_->led_channel, 4095);
+
+  }
 }
 
 /**
@@ -42,7 +56,7 @@ void GaitController::update() {
         // save power
         effort = 0;
       }
-      
+
       if (x != 1 || y != 1) {
         //effort = 0;
       } else {
@@ -54,7 +68,7 @@ void GaitController::update() {
         Serial.print("\t");
         Serial.print("\t");
       }
-      
+
       setPin_(config_->hbridge_pin_a[x][y], effort > 0);
       setPin_(config_->hbridge_pin_b[x][y], effort < 0);
       pwm_->setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
