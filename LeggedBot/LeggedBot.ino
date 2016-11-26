@@ -22,5 +22,5 @@ void loop() {
   //Serial.println("...");
   gc->update();
   //Serial.println(config.data.hbridge_pin_a[RIGHT][FRONT]);
-  delay(10);
+  delay(50);
 }

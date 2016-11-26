@@ -29,10 +29,12 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
   zero_ = config->leg_zero[x][y];
   invert_encoder_ = config->invert_encoder[x][y];
 
-  mode_ = PID_POSITION;
+  mode_ = PID_VELOCITY;
   position_ = readPosition_();
+  velocity_ = 0;
   prev_time_ = millis();
   position_setpoint_ = 0;
+  velocity_setpoint_ = TWO_PI;
   control_effort_ = 0;
   return;
 }
@@ -50,7 +52,7 @@ float LegController::calculateEffort() {
   diff = new_position - position_;
   if (diff > PI) {
     diff -= TWO_PI;
-  } else if (diff < PI) {
+  } else if (diff < -PI) {
     diff += TWO_PI;
   }
   // calculate angular velocity -- radians/sec

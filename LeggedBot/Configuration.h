@@ -44,9 +44,9 @@ typedef struct ConfigData {
   float position_ki{0};
   float position_kd{0.05};
 
-  float velocity_kp{0.5};
-  float velocity_ki{0.25};
-  float velocity_kd{0.1};
+  float velocity_kp{0.12};
+  float velocity_ki{0.04};
+  float velocity_kd{0};
 
   // Encoder offsets for each leg
   uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};

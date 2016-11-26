@@ -74,7 +74,6 @@ void GaitController::update() {
       pwm_->setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
     }
   }
-  Serial.println();
   return;
 }
 
