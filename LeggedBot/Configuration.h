@@ -15,7 +15,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-// Standard units: millimeters, radians, seconds
+// Standard units, unless otherwise noted: millimeters, radians, seconds
 
 enum LegSideX {
   LEFT = 0,
@@ -32,20 +32,20 @@ enum LegSideY {
 
 typedef struct ConfigData {
   // Walking style
-  float gait_contact_angle{0.5};
-  float gait_step_duration{2};
+  float gait_contact_angle{0.2};
+  uint16_t gait_step_duration{10000}; //milliseconds
   float leg_radius{0};
 
   // Controls
 
   // this could be a lot more aggressive, but there are some noise issues
   // with the front left encoder that result in some bad oscillations
-  float position_kp{0.6};
-  float position_ki{0};
+  float position_kp{1};
+  float position_ki{0.3};
   float position_kd{0.05};
 
-  float velocity_kp{0.12};
-  float velocity_ki{0.04};
+  float velocity_kp{0.15};
+  float velocity_ki{0.08};
   float velocity_kd{0};
 
   // Encoder offsets for each leg

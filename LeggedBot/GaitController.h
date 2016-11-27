@@ -23,11 +23,16 @@ class GaitController {
     // angular velocity setpoint (chassis)
     float twist_angular_;
 
+    uint32_t next_step_;
+
+    bool alternate_phase_;
+
     void setPin_(uint8_t pin, bool value);
 
     LegController* leg_[LEG_SIDES_X][LEG_SIDES_Y];
   public:
     GaitController(ConfigData* config);
+    void init();
     void update();
     void setTwist(float linear, float angular);
 };

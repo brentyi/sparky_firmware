@@ -43,16 +43,22 @@ class LegController {
     uint16_t zero_;
     bool invert_encoder_;
 
-    float goal_angle_;
-    uint32_t goal_time_;
+    // TODO: our leg goal/trajectory can probably be described more concisely
+    bool goal_arrived_;
+    float goal_start_position_;
+    float goal_end_position_;
+    uint32_t goal_end_time_;
+    uint32_t goal_start_time_;
 
     bool backwards_;
+
+    inline float wrapAngle_(float theta);
 
   //public:
     AMS_AS5048B* encoder_;
     LegController(ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
-    void setGoal(float destination, uint32_t arrival_time, bool backwards);
+    void setGoal(float destination, uint32_t arrival_time, bool backwards=false);
 };
 
 #endif /* GAITCONTROLLER_H */
