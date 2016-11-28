@@ -63,14 +63,14 @@ float LegController::calculateEffort() {
   prev_time_ = now;
 
   position_ = new_position;
-
-  // Update control mode based on goal
-  diff = goal_end_position_ - position_;
-  if (goal_arrived_ || goal_end_time_ <= now || abs(diff) < 0.001) {
+  /*
+    // Update control mode based on goal
+    diff = goal_end_position_ - position_;
+    if (goal_arrived_ || goal_end_time_ <= now || abs(diff) < 0.001) {
     mode_ = PID_POSITION;
     position_setpoint_ = goal_end_position_;
     goal_arrived_ = true;
-  } else {
+    } else {
     // TODO: this bit can be much better optimized + cleaned up
     diff = wrapAngle_(goal_end_position_ - goal_start_position_);
     if (backwards_ && diff > 0) {
@@ -86,11 +86,11 @@ float LegController::calculateEffort() {
     /*
     mode_ = PID_VELOCITY;
     velocity_setpoint_ = diff / (goal_time_ - now) * 1000.0;
-    */
-  }
+
+    }*/
 
   // Update control loops
-  control_effort_ = 0;
+  //control_effort_ = 0;
   switch (mode_) {
     case LEG_OFF:
       velocity_pid_->SetMode(MANUAL);
@@ -106,15 +106,15 @@ float LegController::calculateEffort() {
       break;
   }
 
-  velocity_pid_->Compute();
+  //velocity_pid_->Compute();
 
   // Angular wraparound for position control
-  /*diff = position_setpoint_ - position_;
-    if (diff > PI) {
+  diff = position_setpoint_ - position_;
+  if (diff > PI) {
     position_ += TWO_PI;
-    } else if (diff < -PI) {
+  } else if (diff < -PI) {
     position_ -= TWO_PI;
-    }*/
+  }
   position_pid_->Compute();
   // Undo any changes made by the wraparound fix
   position_ = new_position;

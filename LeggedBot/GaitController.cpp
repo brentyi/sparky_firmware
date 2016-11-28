@@ -70,6 +70,8 @@ void GaitController::update() {
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
     for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
       // control mode definition
+      //leg_[x][y]->setGoal(0, now);
+      /*
       if (new_step) {
         if (abs(twist_linear_) < 0.0001 && abs(twist_angular_) < 0.0001) {
           // no desired movement => all legs to "stand" pose
@@ -87,6 +89,7 @@ void GaitController::update() {
         }
         next_step_ = now + config_->gait_step_duration + 100;
       }
+      */
 
       // run control loops
       int16_t effort = (int16_t) (4095 * leg_[x][y]->calculateEffort());
@@ -102,6 +105,8 @@ void GaitController::update() {
       Serial.print(leg_[x][y]->position_);
       Serial.print(",");
       Serial.print(leg_[x][y]->position_setpoint_);
+      Serial.print(",");
+      Serial.print(effort);
       Serial.print("\t");
 
       //effort = 1000;
