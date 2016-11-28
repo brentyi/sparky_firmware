@@ -13,10 +13,7 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
 
   mode_ = PID_POSITION;
   position_ = readPosition_();
-  //velocity_ = 0;
-  //prev_time_ = millis();
   position_setpoint_ = 0;
-  //velocity_setpoint_ = TWO_PI;
   control_effort_ = 0;
 
   travel_arrived_ = true;
@@ -25,13 +22,6 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
   travel_start_time_ = millis();
   travel_end_time_ = millis();
 
-  /*velocity_pid_ = new PID(&velocity_,
-                          &control_effort_,
-                          &velocity_setpoint_,
-                          config->velocity_kp,
-                          config->velocity_ki,
-                          config->velocity_kd,
-                          DIRECT);*/
   position_pid_ = new PID(&position_pid_input_,
                           &control_effort_,
                           &position_setpoint_,
@@ -39,11 +29,7 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
                           config->position_ki,
                           config->position_kd,
                           DIRECT);
-
-  //velocity_pid_->SetOutputLimits(-1.0, 1.0);
   position_pid_->SetOutputLimits(-1.0, 1.0);
-  
-  return;
 }
 
 /**
@@ -52,25 +38,13 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
 */
 float LegController::calculateEffort() {
   uint32_t now = millis();
-  
+
   float diff; // generic angular difference
-  
+
   // Update encoder data
   position_ = readPosition_();
-  /*float new_position = readPosition_();
-  diff = new_position - position_;
-  position_ = new_position;
-  if (diff > PI) {
-    diff -= TWO_PI;
-  } else if (diff < -PI) {
-    diff += TWO_PI;
-  }
-  // calculate angular velocity -- radians/sec
-  velocity_ = diff / (now - prev_time_) * 1000.0;
-  prev_time_ = now;*/
 
-  // Update control mode based on goal
-  
+  // Update setpoints based on goal
   diff = wrapAngle_(travel_end_position_ - position_);
   if (travel_arrived_ || travel_end_time_ <= now || abs(diff) < 0.01) {
     mode_ = PID_POSITION;
@@ -90,7 +64,7 @@ float LegController::calculateEffort() {
     position_setpoint_ = travel_start_position_ + diff;
     position_setpoint_ = wrapAngle_(position_setpoint_);
   }
-  
+
   // Wrap angle for position control
   position_pid_input_ = position_;
   diff = position_setpoint_ - position_pid_input_;
@@ -103,25 +77,22 @@ float LegController::calculateEffort() {
   // Update control loops
   switch (mode_) {
     case LEG_OFF:
-      //velocity_pid_->SetMode(MANUAL);
       position_pid_->SetMode(MANUAL);
       control_effort_ = 0;
       break;
-    case PID_VELOCITY:
-      //velocity_pid_->SetMode(AUTOMATIC);
-      position_pid_->SetMode(MANUAL);
-      break;
     case PID_POSITION:
-      //velocity_pid_->SetMode(MANUAL);
       position_pid_->SetMode(AUTOMATIC);
       break;
   }
-  //velocity_pid_->Compute();
+
   position_pid_->Compute();
 
   return control_effort_;
 }
 
+/**
+   @brief Read and return our current leg position.
+*/
 float LegController::readPosition_() {
   int16_t raw_angle = (int16_t)encoder_->angleRegR() - zero_;
   float rad = raw_angle / 8192.0 * PI;
@@ -131,6 +102,10 @@ float LegController::readPosition_() {
   return wrapAngle_(rad);
 }
 
+/**
+   @brief Helper for normalizing angles.
+   @param theta Angle to normalize
+*/
 float LegController::wrapAngle_(float theta) {
   return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
 }
@@ -148,6 +123,4 @@ void LegController::setGoal(float destination, uint32_t arrival_time, bool backw
   travel_end_time_ = arrival_time;
   backwards_ = backwards;
   travel_arrived_ = false;
-  return;
 }
-

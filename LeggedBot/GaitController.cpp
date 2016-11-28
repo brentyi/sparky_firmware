@@ -22,7 +22,7 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
   pwm_ = new Adafruit_PWMServoDriver(config_->pca9685_address);
   pwm_->begin();
   pwm_->setPWMFreq(1600);
-  
+
   // disable motors if battery voltage too low (ie powered by USB)
   // delay a bit first -- there are some funky transients that appear on the line when our system initially powers up
   delay(200);
@@ -30,13 +30,6 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
   pinMode(config_->batt_pin, INPUT);
   setPin_(config_->enable_pin, power);
   if (power) {
-    /*for (uint16_t i = 0; i < 4095; i += 3) {
-      pwm_->setPin(config_->led_channel, i);
-      delay(1);
-      }
-      delay(500);
-      pwm_->setPin(config_->led_channel, 0);
-      delay(500);*/
     pwm_->setPin(config_->led_channel, 4095);
     delay(500);
     pwm_->setPin(config_->led_channel, 0);
@@ -44,7 +37,7 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
     pwm_->setPin(config_->led_channel, 4095);
   }
 
-  twist_linear_ = 1;
+  twist_linear_ = 0;
   twist_angular_ = 0;
   alternate_phase_ = true;
   next_step_time_ = millis();
@@ -59,7 +52,7 @@ void GaitController::update() {
 
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
     for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
-      
+
       if (new_step) {
         if (abs(twist_linear_) < 0.0001 && abs(twist_angular_) < 0.0001) {
           // no desired movement => all legs to "stand" pose
@@ -77,7 +70,7 @@ void GaitController::update() {
         }
         next_step_time_ = now + config_->gait_step_duration + 100;
       }
-      
+
       int16_t effort = (int16_t) (4095 * leg_[x][y]->calculateEffort());
       if (config_->invert_motor[x][y]) {
         effort = -effort;
@@ -88,12 +81,6 @@ void GaitController::update() {
         effort = 0;
       }
 
-      if (x != 0 || y != 0) {
-        //effort = 0;
-      } else {
-        //Serial.println(leg_[x][y]->position_);
-      }
-
       setPin_(config_->hbridge_pin_a[x][y], effort > 0);
       setPin_(config_->hbridge_pin_b[x][y], effort < 0);
       pwm_->setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
@@ -101,8 +88,6 @@ void GaitController::update() {
   }
 
   alternate_phase_ ^= new_step;
-
-  return;
 }
 
 /**
@@ -125,6 +110,5 @@ void GaitController::setPin_(uint8_t pin, bool value) {
 void GaitController::setTwist(float linear, float angular) {
   twist_linear_ = linear;
   twist_angular_ = angular;
-  return;
 }
 

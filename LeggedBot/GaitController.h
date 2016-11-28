@@ -1,9 +1,9 @@
 /**
- * @file GaitController.h
- * @author TEAM TEN
- * @version 1.0
- * @brief Class for generating and handling coordinated leg trajectories.
- */
+   @file GaitController.h
+   @author TEAM TEN
+   @version 1.0
+   @brief Class for generating and handling coordinated leg trajectories.
+*/
 
 #ifndef GAITCONTROLLER_H
 #define GAITCONTROLLER_H
@@ -14,6 +14,10 @@
 #include "LegController.h"
 
 class GaitController {
+  public:
+    GaitController(ConfigData* config);
+    void update();
+    void setTwist(float linear, float angular);
   private:
     ConfigData* config_;
     Adafruit_PWMServoDriver* pwm_;
@@ -30,10 +34,6 @@ class GaitController {
     void setPin_(uint8_t pin, bool value);
 
     LegController* leg_[LEG_SIDES_X][LEG_SIDES_Y];
-  public:
-    GaitController(ConfigData* config);
-    void update();
-    void setTwist(float linear, float angular);
 };
 
 #endif /* GAITCONTROLLER_H */
