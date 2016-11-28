@@ -32,21 +32,15 @@ enum LegSideY {
 
 typedef struct ConfigData {
   // Walking style
-  float gait_contact_angle{0.2};
-  uint16_t gait_step_duration{10000}; //milliseconds
+  float gait_contact_angle{0.3};
+  uint16_t gait_step_duration{800}; // milliseconds
   float leg_radius{0};
 
   // Controls
 
-  // this could be a lot more aggressive, but there are some noise issues
-  // with the front left encoder that result in some bad oscillations
-  float position_kp{1};
-  float position_ki{0.3};
-  float position_kd{0.05};
-
-  float velocity_kp{0.15};
-  float velocity_ki{0.08};
-  float velocity_kd{0};
+  float position_kp{1.57};
+  float position_ki{0};
+  float position_kd{0.008};
 
   // Encoder offsets for each leg
   uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};

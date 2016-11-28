@@ -8,14 +8,31 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
   encoder_ = new AMS_AS5048B(config->as5048b_address[x][y]);
   encoder_->begin();
 
-  velocity_pid_ = new PID(&velocity_,
+  zero_ = config->leg_zero[x][y];
+  invert_encoder_ = config->invert_encoder[x][y];
+
+  mode_ = PID_POSITION;
+  position_ = readPosition_();
+  //velocity_ = 0;
+  //prev_time_ = millis();
+  position_setpoint_ = 0;
+  //velocity_setpoint_ = TWO_PI;
+  control_effort_ = 0;
+
+  travel_arrived_ = true;
+  travel_start_position_ = position_;
+  travel_end_position_ = 0;
+  travel_start_time_ = millis();
+  travel_end_time_ = millis();
+
+  /*velocity_pid_ = new PID(&velocity_,
                           &control_effort_,
                           &velocity_setpoint_,
                           config->velocity_kp,
                           config->velocity_ki,
                           config->velocity_kd,
-                          DIRECT);
-  position_pid_ = new PID(&position_,
+                          DIRECT);*/
+  position_pid_ = new PID(&position_pid_input_,
                           &control_effort_,
                           &position_setpoint_,
                           config->position_kp,
@@ -23,22 +40,9 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
                           config->position_kd,
                           DIRECT);
 
-  velocity_pid_->SetOutputLimits(-1.0, 1.0);
+  //velocity_pid_->SetOutputLimits(-1.0, 1.0);
   position_pid_->SetOutputLimits(-1.0, 1.0);
-
-  zero_ = config->leg_zero[x][y];
-  invert_encoder_ = config->invert_encoder[x][y];
-
-  mode_ = PID_POSITION;
-  position_ = readPosition_();
-  velocity_ = 0;
-  prev_time_ = millis();
-  goal_end_time_ = millis();
-  goal_start_time_ = millis();
-  goal_arrived_ = false;
-  position_setpoint_ = 0;
-  velocity_setpoint_ = TWO_PI;
-  control_effort_ = 0;
+  
   return;
 }
 
@@ -47,12 +51,15 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
    @returns Control effort, -1.0 to 1.0
 */
 float LegController::calculateEffort() {
-  float diff; // generic/temporary variable for angular difference
-
-  // Update encoder data
-  float new_position = readPosition_();
   uint32_t now = millis();
+  
+  float diff; // generic angular difference
+  
+  // Update encoder data
+  position_ = readPosition_();
+  /*float new_position = readPosition_();
   diff = new_position - position_;
+  position_ = new_position;
   if (diff > PI) {
     diff -= TWO_PI;
   } else if (diff < -PI) {
@@ -60,64 +67,57 @@ float LegController::calculateEffort() {
   }
   // calculate angular velocity -- radians/sec
   velocity_ = diff / (now - prev_time_) * 1000.0;
-  prev_time_ = now;
+  prev_time_ = now;*/
 
-  position_ = new_position;
-  /*
-    // Update control mode based on goal
-    diff = goal_end_position_ - position_;
-    if (goal_arrived_ || goal_end_time_ <= now || abs(diff) < 0.001) {
+  // Update control mode based on goal
+  
+  diff = wrapAngle_(travel_end_position_ - position_);
+  if (travel_arrived_ || travel_end_time_ <= now || abs(diff) < 0.01) {
     mode_ = PID_POSITION;
-    position_setpoint_ = goal_end_position_;
-    goal_arrived_ = true;
-    } else {
+    position_setpoint_ = travel_end_position_;
+    travel_arrived_ = true;
+  } else {
     // TODO: this bit can be much better optimized + cleaned up
-    diff = wrapAngle_(goal_end_position_ - goal_start_position_);
+    diff = wrapAngle_(travel_end_position_ - travel_start_position_);
     if (backwards_ && diff > 0) {
       diff -= TWO_PI;
     } else if (!backwards_ && diff < 0) {
       diff += TWO_PI;
     }
     mode_ = PID_POSITION;
-    diff *= now - goal_start_time_;
-    diff /= goal_end_time_ - goal_start_time_;
-    position_setpoint_ = goal_start_position_ + diff;
+    diff *= now - travel_start_time_;
+    diff /= travel_end_time_ - travel_start_time_;
+    position_setpoint_ = travel_start_position_ + diff;
     position_setpoint_ = wrapAngle_(position_setpoint_);
-    /*
-    mode_ = PID_VELOCITY;
-    velocity_setpoint_ = diff / (goal_time_ - now) * 1000.0;
-
-    }*/
+  }
+  
+  // Wrap angle for position control
+  position_pid_input_ = position_;
+  diff = position_setpoint_ - position_pid_input_;
+  if (diff > PI) {
+    position_pid_input_ += TWO_PI;
+  } else if (diff < -PI) {
+    position_pid_input_ -= TWO_PI;
+  }
 
   // Update control loops
-  //control_effort_ = 0;
   switch (mode_) {
     case LEG_OFF:
-      velocity_pid_->SetMode(MANUAL);
+      //velocity_pid_->SetMode(MANUAL);
       position_pid_->SetMode(MANUAL);
+      control_effort_ = 0;
       break;
     case PID_VELOCITY:
-      velocity_pid_->SetMode(AUTOMATIC);
+      //velocity_pid_->SetMode(AUTOMATIC);
       position_pid_->SetMode(MANUAL);
       break;
     case PID_POSITION:
-      velocity_pid_->SetMode(MANUAL);
+      //velocity_pid_->SetMode(MANUAL);
       position_pid_->SetMode(AUTOMATIC);
       break;
   }
-
   //velocity_pid_->Compute();
-
-  // Angular wraparound for position control
-  diff = position_setpoint_ - position_;
-  if (diff > PI) {
-    position_ += TWO_PI;
-  } else if (diff < -PI) {
-    position_ -= TWO_PI;
-  }
   position_pid_->Compute();
-  // Undo any changes made by the wraparound fix
-  position_ = new_position;
 
   return control_effort_;
 }
@@ -142,13 +142,12 @@ float LegController::wrapAngle_(float theta) {
    @param backwards Use backwards leg movement.
 */
 void LegController::setGoal(float destination, uint32_t arrival_time, bool backwards) {
-  goal_end_position_ = destination;
-  goal_start_position_ = position_;
-  goal_start_time_ = millis(); // we may want to pass this in as an argument
-  goal_end_time_ = arrival_time;
-  goal_arrived_ = false;
+  travel_start_position_ = position_;
+  travel_end_position_ = destination;
+  travel_start_time_ = millis();
+  travel_end_time_ = arrival_time;
   backwards_ = backwards;
-  position_setpoint_ = destination;
+  travel_arrived_ = false;
   return;
 }
 

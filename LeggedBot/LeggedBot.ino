@@ -1,24 +1,26 @@
 #include "Configuration.h"
 #include "GaitController.h"
 #include <Adafruit_PWMServoDriver.h>
-#include <stdint.h>
 
 Configuration config;
-GaitController gc(&config.data);
+GaitController* gc;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Starting");
-  delay(100);
-  gc.init();
-  delay(100);
-  for (uint16_t i = 0; i < 10000; i++) {
-    gc.update();
-  }
-  //gc.setTwist(1, 0);
+  Serial.println("begin setup");
+  gc = new GaitController(&config.data);
+  Serial.println("end setup");
 }
 
 void loop() {
-  gc.update();
-  //delay(50); // TODO: get rid of this -- this is a hack to alleviate velocity measurement/noise issues with the front left encoder
+  /*
+  digitalWrite(config.data.hbridge_pin_a[RIGHT][FRONT], LOW);
+  digitalWrite(config.data.hbridge_pin_b[RIGHT][FRONT], HIGH);
+  pwm.setPin(3, 4095);
+  pwm.setPin(config.data.pwm_channel[RIGHT][FRONT], 4095);
+  pwm.setPWM(8, 0, 4000);
+  */
+  //Serial.println("...");
+  gc->update();
+  //Serial.println(config.data.hbridge_pin_a[RIGHT][FRONT]);
 }

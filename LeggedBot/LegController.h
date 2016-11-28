@@ -25,34 +25,34 @@ class LegController {
     ControlMode prev_mode_;
 
     PID* position_pid_;
-    PID* velocity_pid_;
+    //PID* velocity_pid_;
 
     // using doubles here because the pid library demands them :(
     // (same as floats)
     double position_;
-    double velocity_;
+    double position_pid_input_; // position control input -- same as position_ but +/-2pi for angle wrapping reasons
+    //double velocity_;
     double position_setpoint_;
-    double velocity_setpoint_;
+    //double velocity_setpoint_;
 
     double control_effort_;
 
     float readPosition_();
 
-    uint32_t prev_time_;
+    //uint32_t prev_time_;
 
     uint16_t zero_;
     bool invert_encoder_;
 
-    // TODO: our leg goal/trajectory can probably be described more concisely
-    bool goal_arrived_;
-    float goal_start_position_;
-    float goal_end_position_;
-    uint32_t goal_end_time_;
-    uint32_t goal_start_time_;
+    bool travel_arrived_;
+    float travel_start_position_;
+    float travel_end_position_;
+    uint32_t travel_start_time_;
+    uint32_t travel_end_time_;
 
     bool backwards_;
 
-    inline float wrapAngle_(float theta);
+    float wrapAngle_(float theta);
 
   //public:
     AMS_AS5048B* encoder_;
