@@ -5,7 +5,6 @@
 #include "Configuration.h"
 
 GaitController::GaitController(ConfigData* config) : config_(config) {
-  Serial.print("Setting up legs");
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
     for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
       leg_[x][y] = new LegController(config_, static_cast<LegSideX>(x), static_cast<LegSideY>(y));
@@ -14,11 +13,9 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
         pinMode(config_->hbridge_pin_a[x][y], OUTPUT);
       if (config_->hbridge_pin_b[x][y] < 100)
         pinMode(config_->hbridge_pin_b[x][y], OUTPUT);
-
-      Serial.print(".");
     }
   }
-  Serial.println();
+
   pwm_ = new Adafruit_PWMServoDriver(config_->pca9685_address);
   pwm_->begin();
   pwm_->setPWMFreq(1600);
@@ -57,16 +54,19 @@ void GaitController::update() {
         if (abs(twist_linear_) < 0.0001 && abs(twist_angular_) < 0.0001) {
           // no desired movement => all legs to "stand" pose
           leg_[x][y]->setGoal(0, now);
-        } else if (twist_linear_ > 0.0001) {
-          // walk forward!
-          // TODO: math for actual stride length calculation + omega stuff
-          if (((x + y) % 2 == 0) ^ alternate_phase_) {
-            // ground contact
-            leg_[x][y]->setGoal(-config_->gait_contact_angle, now + config_->gait_step_duration);
+        } else {
+          // TODO: actual math for calculating leg trajectories
+          // this only does forward + back + left + right at fixed velocities
+
+          bool backwards = false;
+          if (abs(twist_angular_) > 0.0001) {
+            backwards = (x == 0) ^ (twist_angular_ > 0);
           } else {
-            // through the air!
-            leg_[x][y]->setGoal(config_->gait_contact_angle, now + config_->gait_step_duration);
+            backwards = (twist_linear_ < 0);
           }
+
+          float travel_multiplier = (((x + y) % 2 == 0) ^ alternate_phase_ ^ backwards) ? 1.0 : -1.0;
+          leg_[x][y]->setGoal(config_->gait_contact_angle * travel_multiplier, now + config_->gait_step_duration, backwards);
         }
         next_step_time_ = now + config_->gait_step_duration + 100;
       }
