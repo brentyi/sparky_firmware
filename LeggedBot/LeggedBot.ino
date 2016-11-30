@@ -1,25 +1,10 @@
-#include "Configuration.h"
-#include "GaitController.h"
+#include <Adafruit_BLE.h>
+#include <Adafruit_BluefruitLE_SPI.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <string.h>
-#include <Arduino.h>
-#include <SPI.h>
-#if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
-#include <SoftwareSerial.h>
-#endif
 
-#include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_SPI.h"
-#include "Adafruit_BluefruitLE_UART.h"
-
+#include "Configuration.h"
 #include "BluefruitConfig.h"
-/*=========================================================================
-    APPLICATION SETTINGS
-    -----------------------------------------------------------------------*/
-#define FACTORYRESET_ENABLE         1
-#define MINIMUM_FIRMWARE_VERSION    "0.7.0"
-#define MODE_LED_BEHAVIOUR          "MODE"
-/*=========================================================================*/
+#include "GaitController.h"
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -27,10 +12,9 @@ Configuration config;
 GaitController* gc;
 
 void setup() {
-  while (!Serial);  // required for Flora & Micro
-  delay(500);
-
   Serial.begin(115200);
+
+  delay(500);
 
   ble.begin(VERBOSE_MODE);
   ble.echo(false);
@@ -45,11 +29,7 @@ void setup() {
     delay(500);
   }
 
-  Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
-  ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
-
-  // Set Bluefruit to DATA mode
-  Serial.println( F("Switching to DATA mode!") );
+  ble.sendCommandCheckOK("AT+HWModeLED=MODE");
   ble.setMode(BLUEFRUIT_MODE_DATA);
 
   ble.setBleUartRxCallback(callback);
@@ -64,7 +44,6 @@ void callback(char data[], uint16_t len) {
   if (len == 0) return;
 
   /* Got a packet! */
-  // printHex(packetbuffer, len);
   // Buttons
   if (data[1] == 'B') {
     uint8_t buttnum = data[2] - '0';
