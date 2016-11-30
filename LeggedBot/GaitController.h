@@ -2,7 +2,7 @@
    @file GaitController.h
    @author TEAM TEN
    @version 1.0
-   @brief Class for generating and handling coordinated leg trajectories.
+   @brief Interface for controlling our robot!
 */
 
 #ifndef GAITCONTROLLER_H
@@ -18,6 +18,8 @@ class GaitController {
     GaitController(ConfigData* config);
     void update();
     void setTwist(float linear, float angular);
+    float getBatteryVoltage();
+    void fault();
   private:
     ConfigData* config_;
     Adafruit_PWMServoDriver* pwm_;

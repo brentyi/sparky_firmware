@@ -8,10 +8,10 @@
 #ifndef LEGCONTROLLER_H
 #define LEGCONTROLLER_H
 
-#include <ams_as5048b.h>
 #include <stdint.h>
 #include <PID_v1.h>
 #include "Configuration.h"
+#include "Encoder.h"
 
 typedef enum ControlMode {
   LEG_OFF,
@@ -20,7 +20,7 @@ typedef enum ControlMode {
 
 class LegController {
   public:
-    AMS_AS5048B* encoder_;
+    Encoder encoder_;
     LegController(ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
     void setGoal(float destination, uint32_t arrival_time, bool backwards = false);

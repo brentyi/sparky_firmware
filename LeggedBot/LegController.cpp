@@ -1,12 +1,11 @@
 #include <stdint.h>
 #include <PID_v1.h>
-#include <ams_as5048b.h>
+#include "Encoder.h"
 #include "Configuration.h"
 #include "LegController.h"
 
 LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) {
-  encoder_ = new AMS_AS5048B(config->as5048b_address[x][y]);
-  encoder_->begin();
+  encoder_.address = config->as5048b_address[x][y];
 
   zero_ = config->leg_zero[x][y];
   invert_encoder_ = config->invert_encoder[x][y];
@@ -94,7 +93,7 @@ float LegController::calculateEffort() {
    @brief Read and return our current leg position.
 */
 float LegController::readPosition_() {
-  int16_t raw_angle = (int16_t)encoder_->angleRegR() - zero_;
+  int16_t raw_angle = (int16_t)encoder_.read() - zero_;
   float rad = raw_angle / 8192.0 * PI;
   if (invert_encoder_) {
     rad = -rad;

@@ -34,10 +34,10 @@ typedef struct ConfigData {
   // Walking style
   float gait_contact_angle{0.3};
   uint16_t gait_step_duration{800}; // milliseconds
-  float leg_radius{0};
+  
+  float voltage_cutoff{6.6};
 
   // Controls
-
   float position_kp{1.57};
   float position_ki{0};
   float position_kd{0.008};
@@ -45,7 +45,6 @@ typedef struct ConfigData {
   // Encoder offsets for each leg
   uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};
   
-
   // Shared angular offset (radians)
   float leg_offset{0};
 
