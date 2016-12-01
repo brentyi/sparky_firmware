@@ -30,6 +30,7 @@ void setup() {
   ble.begin(VERBOSE_MODE);
   ble.echo(false);
   ble.info();
+  ble.sendCommandCheckOK(F("AT+GAPDEVNAME=TEAM TEN"));
   ble.verbose(false);
 
   /* Wait for connection */
@@ -44,11 +45,11 @@ void loop() {
   ble.update();
   gc->update();
 
-  if (report_voltage) {    
+  if (report_voltage) {
     dtostrf(gc->getBatteryVoltage(), 4, 4, voltage);
     ble.print(F("Battery voltage: "));
     ble.println(voltage);
-    report_voltage = false;x
+    report_voltage = false;
   }
 }
 
@@ -77,11 +78,11 @@ void callback(char data[], uint16_t len) {
       config.data.gait_contact_angle = 0.3;
       config.data.gait_step_duration = 800;
     } else if (buttnum == 3 && pressed) {
-      config.data.gait_contact_angle = 0.4;
-      config.data.gait_step_duration = 800;
+      config.data.gait_contact_angle = 0.3;
+      config.data.gait_step_duration = 500;
     } else if (buttnum == 4 && pressed) {
       config.data.gait_contact_angle = 0.5;
-      config.data.gait_step_duration = 800;
+      config.data.gait_step_duration = 500;
     }
 
     if (gc->getBatteryVoltage() <= config.data.voltage_cutoff) {

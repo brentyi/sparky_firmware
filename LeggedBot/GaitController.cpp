@@ -72,7 +72,7 @@ void GaitController::update() {
         next_step_time_ = now + config_->gait_step_duration + 100;
       }
 
-      int16_t effort = (int16_t) (4095 * leg_[x][y]->calculateEffort());
+      int16_t effort = (int16_t) (4095.0 * leg_[x][y]->calculateEffort());
       if (config_->invert_motor[x][y]) {
         effort = -effort;
       }

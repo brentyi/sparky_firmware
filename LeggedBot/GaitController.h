@@ -20,6 +20,7 @@ class GaitController {
     void setTwist(float linear, float angular);
     float getBatteryVoltage();
     void fault();
+
   private:
     ConfigData* config_;
     Adafruit_PWMServoDriver* pwm_;

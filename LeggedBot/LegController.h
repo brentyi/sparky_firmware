@@ -24,7 +24,10 @@ class LegController {
     LegController(ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
     void setGoal(float destination, uint32_t arrival_time, bool backwards = false);
+
   private:
+    ConfigData* config_;
+
     ControlMode mode_;
     ControlMode prev_mode_;
 
@@ -35,11 +38,14 @@ class LegController {
     double position_pid_input_; // position control input -- same as position_ but +/-2pi for angle wrapping reasons
     double position_setpoint_;
 
-    double control_effort_;
+    float velocity_;
 
-    float readPosition_();
+    double feedback_effort_;
+
+    void readState_();
 
     uint16_t zero_;
+    uint32_t prev_time_;
     bool invert_encoder_;
 
     bool travel_arrived_;

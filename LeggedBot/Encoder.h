@@ -1,3 +1,10 @@
+/*
+   @filename Encoder.h
+   @author TEAM TEN
+   @version 1.0
+   @brief Helper class for abstract away communication with our encoders.
+*/
+
 #ifndef ENCODER_H
 #define ENCODER_H
 
