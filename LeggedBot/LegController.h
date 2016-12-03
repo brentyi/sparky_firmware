@@ -56,7 +56,7 @@ class LegController {
 
     bool backwards_;
 
-    float wrapAngle_(float theta);
+    static float wrapAngle_(float theta);
 };
 
 #endif /* GAITCONTROLLER_H */

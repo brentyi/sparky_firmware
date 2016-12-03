@@ -100,23 +100,13 @@ void LegController::readState_() {
   uint32_t now = millis();
 
   int16_t raw_angle = (int16_t)encoder_.read() - zero_;
-  float rad = raw_angle / 8192.0 * PI;
+  float new_position = wrapAngle(raw_angle / 8192.0 * PI);
   if (invert_encoder_) {
-    rad = -rad;
+    new_position = -new_position;
   }
-
-
-  // Update encoder data
-  float new_position = wrapAngle_(rad);
-  float diff = new_position - position_;
+  velocity_ = wrapAngle_(new_position - position_) / (now - prev_time_) * 1000.0;
   position_ = new_position;
-  if (diff > PI) {
-    diff -= TWO_PI;
-  } else if (diff < -PI) {
-    diff += TWO_PI;
-  }
-  // calculate angular velocity -- radians/sec
-  velocity_ = diff / (now - prev_time_) * 1000.0;
+
   prev_time_ = now;
 }
 
