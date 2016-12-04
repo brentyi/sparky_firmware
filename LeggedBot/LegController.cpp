@@ -53,14 +53,14 @@ float LegController::calculateEffort() {
     position_setpoint_ = travel_end_position_;
     travel_arrived_ = true;
   } else {
-    // TODO: there's quite a bit of redundant floating point math that could be avoided through precomputation
-    diff = wrapAngle_(travel_end_position_ - travel_start_position_);
+    // TODO: there's quite a bit of redundant floating point math that could be avoided by precomputing
     if (backwards_ && diff > 0) {
       diff -= TWO_PI;
     } else if (!backwards_ && diff < 0) {
       diff += TWO_PI;
     }
-    feedforward_effort = diff * 1000.0 / (travel_end_time_ - travel_start_time_) * config_->velocity_ff;
+    feedforward_effort = wrapAngleDirected_(diff) * 1000.0 / (travel_end_time_ - now) * config_->velocity_ff;
+    diff = wrapAngleDirected_(travel_end_position_ - travel_start_position_);
     diff *= now - travel_start_time_;
     diff /= travel_end_time_ - travel_start_time_;
     position_setpoint_ = wrapAngle_(travel_start_position_ + diff);
@@ -90,7 +90,7 @@ float LegController::calculateEffort() {
 
   position_pid_->Compute();
 
-  return constrain(feedback_effort_ + feedforward_effort, 0.0, 1.0);
+  return constrain(feedback_effort_ + feedforward_effort, -1.0, 1.0);
 }
 
 /**
@@ -100,7 +100,7 @@ void LegController::readState_() {
   uint32_t now = millis();
 
   int16_t raw_angle = (int16_t)encoder_.read() - zero_;
-  float new_position = wrapAngle(raw_angle / 8192.0 * PI);
+  float new_position = wrapAngle_(raw_angle / 8192.0 * PI);
   if (invert_encoder_) {
     new_position = -new_position;
   }
@@ -116,6 +116,20 @@ void LegController::readState_() {
 */
 float LegController::wrapAngle_(float theta) {
   return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
+}
+
+/**
+   @brief Helper for normalizing angles relative to our travel direction.
+   @param theta Angle to normalize
+*/
+float LegController::wrapAngleDirected_(float theta) {
+  theta = wrapAngle_(theta);
+  if (backwards_ && theta > 0) {
+    return theta - TWO_PI;
+  } else if (!backwards_ && theta < 0) {
+    return theta + TWO_PI;
+  }
+  return theta;
 }
 
 /**
