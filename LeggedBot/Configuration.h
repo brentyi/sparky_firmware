@@ -3,10 +3,6 @@
    @author TEAM TEN
    @version 1.0
    @brief (Experimental) Configuration class for dynamically configurable robot settings, which can be pulled from and pushed to the EEPROM.
-
-   Storing all of our configuration data in a struct obviously isn't as efficient as doing so in preprocessor directives, but I was using a bunch
-   of arrays anyways and it'd be super neat if we could change all this low-level stuff on the fly: control loop tuning is the most obvious
-   application, but this'd also enable self-calibration, encoder realignment, PWM channel swapping, etc.
 */
 
 #ifndef CONFIGURATION_H
@@ -40,7 +36,7 @@ typedef struct ConfigData {
   // Controls
   float position_kp{1.57};
   float position_ki{0};
-  float position_kd{0.008};
+  float position_kd{0.004};
   float velocity_ff{0.112};
 
   // Encoder offsets for each leg
