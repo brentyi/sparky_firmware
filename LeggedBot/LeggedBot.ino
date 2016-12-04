@@ -11,7 +11,6 @@ Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_
 Configuration config;
 GaitController* gc;
 
-char voltage[6];
 bool report_voltage;
 
 void setup() {
@@ -19,24 +18,35 @@ void setup() {
 
   delay(500);
 
+  Serial.println("--------------------");
   gc = new GaitController(&config.data);
 
-  if (gc->getBatteryVoltage() <= config.data.voltage_cutoff) {
+  float voltage = gc->getBatteryVoltage();
+  Serial.print("Battery voltage: ");
+  Serial.println(voltage);
+
+  if (voltage <= config.data.voltage_cutoff && !(voltage > 4 && voltage < 4.5)) {
     gc->fault();
   }
 
   gc->setTwist(0, 0);
 
   ble.begin(VERBOSE_MODE);
+  if ( ! ble.factoryReset() ) {
+    Serial.println(F("Couldn't factory reset"));
+    gc->fault();
+  }
   ble.echo(false);
   ble.info();
   ble.sendCommandCheckOK(F("AT+GAPDEVNAME=TEAM TEN"));
   ble.verbose(false);
 
-  /* Wait for connection */
-  while (! ble.isConnected()) {
+  Serial.print("Waiting for BLE connection.... ");
+  while (!ble.isConnected()) {
     delay(500);
   }
+  Serial.println("connected!");
+
   ble.setMode(BLUEFRUIT_MODE_DATA);
   ble.setBleUartRxCallback(callback);
 }
@@ -46,6 +56,7 @@ void loop() {
   gc->update();
 
   if (report_voltage) {
+    char voltage[6];
     dtostrf(gc->getBatteryVoltage(), 4, 4, voltage);
     ble.print(F("Battery voltage: "));
     ble.println(voltage);

@@ -25,9 +25,8 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
   delay(500);
 
   // disable motors if battery voltage too low (ie powered by USB)
-  // delay a bit first -- there are some funky transients that appear on the line when our system initially powers up
   pinMode(config_->batt_pin, INPUT);
-  setPin_(config_->enable_pin, true);
+  setPin_(config_->enable_pin, getBatteryVoltage() > config_->voltage_cutoff);
 
   pwm_->setPin(config_->led_channel, 4095);
   delay(500);
