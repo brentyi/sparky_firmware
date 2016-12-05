@@ -11,7 +11,8 @@ Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_
 Configuration config;
 GaitController* gc;
 
-bool report_voltage;
+bool report_status;
+uint32_t prev_time;
 
 void setup() {
   Serial.begin(115200);
@@ -34,7 +35,7 @@ void setup() {
   float voltage = gc->getBatteryVoltage();
 
   char rename_cmd[40] = "AT+GAPDEVNAME=TEAM TEN ";
-  dtostrf(voltage, 4, 4, rename_cmd + strlen(rename_cmd)); // is this an acceptable way to concat a float?
+  dtostrf(voltage, 4, 4, rename_cmd + strlen(rename_cmd)); // ...is this an acceptable way to concat a float?
   ble.sendCommandCheckOK(rename_cmd);
   ble.verbose(false);
 
@@ -50,19 +51,30 @@ void setup() {
 
   ble.setMode(BLUEFRUIT_MODE_DATA);
   ble.setBleUartRxCallback(callback);
+
+  prev_time = millis();
 }
 
 void loop() {
   ble.update();
   gc->update();
 
-  if (report_voltage) {
-    char voltage[6];
-    dtostrf(gc->getBatteryVoltage(), 4, 4, voltage);
-    ble.print(F("Battery voltage: "));
-    ble.println(voltage);
-    report_voltage = false;
+  uint32_t now = millis();
+  if (report_status) {
+    char temp[7];
+    
+    ble.println("--------------");
+    ble.print(F("Main loop frequency: \t"));
+    dtostrf( 1000.0 / (now - prev_time), 4, 4, temp);
+    ble.print(temp);
+    ble.println("Hz");
+
+    dtostrf(gc->getBatteryVoltage(), 4, 4, temp);
+    ble.print(F("Battery voltage: \t"));
+    ble.println(temp);
+    report_status = false;
   }
+  prev_time = now;
 }
 
 void callback(char data[], uint16_t len) {
@@ -90,7 +102,7 @@ void callback(char data[], uint16_t len) {
       config.data.gait_contact_angle = 0.3;
       config.data.gait_step_duration = 800;
     } else if (buttnum == 3 && pressed) {
-      config.data.gait_contact_angle = 0.3;
+      config.data.gait_contact_angle = 0.2;
       config.data.gait_step_duration = 500;
     } else if (buttnum == 4 && pressed) {
       config.data.gait_contact_angle = 0.5;
@@ -100,8 +112,8 @@ void callback(char data[], uint16_t len) {
     if (gc->getBatteryVoltage() <= config.data.voltage_cutoff) {
       gc->fault();
     }
-  } else if (strcmp(data, "batt") == 0) {
-    report_voltage = true;
+  } else if (strcmp(data, "status") == 0) {
+    report_status = true;
   }
 }
 
