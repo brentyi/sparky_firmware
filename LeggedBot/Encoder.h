@@ -12,8 +12,10 @@
 
 class Encoder {
   public:
+    Encoder(uint8_t address);
     uint16_t read();
-    uint8_t address = 0x40;
+  private:
+    const uint8_t address_ = 0x40;
 };
 
 #endif

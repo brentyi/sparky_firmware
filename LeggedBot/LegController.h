@@ -21,15 +21,14 @@ typedef enum ControlMode {
 class LegController {
   public:
     Encoder encoder_;
-    LegController(ConfigData* config, LegSideX x, LegSideY y);
+    LegController(const ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
     void setGoal(float destination, uint32_t arrival_time, bool backwards = false);
 
   private:
-    ConfigData* config_;
+    const ConfigData* config_;
 
     ControlMode mode_;
-    ControlMode prev_mode_;
 
     PID* position_pid_;
 
@@ -44,9 +43,9 @@ class LegController {
 
     void readState_();
 
-    uint16_t zero_;
     uint32_t prev_time_;
-    bool invert_encoder_;
+    const uint16_t zero_;
+    const bool invert_encoder_;
 
     bool travel_arrived_;
     float travel_start_position_;

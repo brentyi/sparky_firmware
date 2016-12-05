@@ -9,7 +9,7 @@
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 Configuration config;
-GaitController* gc;
+GaitController robot(&config.data);
 
 bool report_status;
 uint32_t prev_time;
@@ -20,19 +20,19 @@ void setup() {
   delay(500);
 
   Serial.println("--------------------");
-  gc = new GaitController(&config.data);
 
-  gc->setTwist(0, 0);
+  robot.init();
+  robot.setTwist(0, 0);
 
   ble.begin(VERBOSE_MODE);
   if ( ! ble.factoryReset() ) {
     Serial.println(F("Couldn't factory reset"));
-    gc->fault();
+    robot.fault();
   }
   ble.echo(false);
   ble.info();
 
-  float voltage = gc->getBatteryVoltage();
+  float voltage = robot.getBatteryVoltage();
 
   char rename_cmd[40] = "AT+GAPDEVNAME=TEAM TEN ";
   dtostrf(voltage, 4, 4, rename_cmd + strlen(rename_cmd)); // ...is this an acceptable way to concat a float?
@@ -40,7 +40,7 @@ void setup() {
   ble.verbose(false);
 
   if (voltage <= config.data.voltage_cutoff && !(voltage > 4 && voltage < 4.5)) {
-    gc->fault();
+    robot.fault();
   }
 
   Serial.print(F("Waiting for BLE connection.... "));
@@ -57,19 +57,19 @@ void setup() {
 
 void loop() {
   ble.update();
-  gc->update();
+  robot.update();
 
   uint32_t now = millis();
   if (report_status) {
     char temp[7];
-    
+
     ble.println("--------------");
     ble.print(F("Main loop frequency: \t"));
     dtostrf( 1000.0 / (now - prev_time), 4, 4, temp);
     ble.print(temp);
     ble.println("Hz");
 
-    dtostrf(gc->getBatteryVoltage(), 4, 4, temp);
+    dtostrf(robot.getBatteryVoltage(), 4, 4, temp);
     ble.print(F("Battery voltage: \t"));
     ble.println(temp);
     report_status = false;
@@ -86,15 +86,15 @@ void callback(char data[], uint16_t len) {
     boolean pressed = data[3] - '0';
     Serial.print ("Button "); Serial.println(buttnum);
     if (buttnum == 5 && pressed) {
-      gc->setTwist(1, 0);
+      robot.setTwist(1, 0);
     } else if (buttnum == 6 && pressed) {
-      gc->setTwist(-1, 0);
+      robot.setTwist(-1, 0);
     } else if (buttnum == 7 && pressed) {
-      gc->setTwist(0, -1);
+      robot.setTwist(0, -1);
     } else if (buttnum == 8 && pressed) {
-      gc->setTwist(0, 1);
+      robot.setTwist(0, 1);
     } else if (buttnum >= 5 && buttnum <= 8 && !pressed) {
-      gc->setTwist(0, 0);
+      robot.setTwist(0, 0);
     } else if (buttnum == 1 && pressed) {
       config.data.gait_contact_angle = 0.2;
       config.data.gait_step_duration = 800;
@@ -109,8 +109,8 @@ void callback(char data[], uint16_t len) {
       config.data.gait_step_duration = 500;
     }
 
-    if (gc->getBatteryVoltage() <= config.data.voltage_cutoff) {
-      gc->fault();
+    if (robot.getBatteryVoltage() <= config.data.voltage_cutoff) {
+      robot.fault();
     }
   } else if (strcmp(data, "status") == 0) {
     report_status = true;

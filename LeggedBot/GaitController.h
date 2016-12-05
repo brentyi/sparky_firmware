@@ -15,15 +15,17 @@
 
 class GaitController {
   public:
-    GaitController(ConfigData* config);
+    GaitController(const ConfigData* config);
+    void init();
     void update();
     void setTwist(float linear, float angular);
     float getBatteryVoltage();
     void fault();
 
   private:
-    ConfigData* config_;
-    Adafruit_PWMServoDriver* pwm_;
+    const ConfigData* config_;
+    Adafruit_PWMServoDriver pwm_;
+    LegController* leg_[LEG_SIDES_X][LEG_SIDES_Y];
 
     // forward velocity setpoint (chassis)
     float twist_linear_;
@@ -35,8 +37,6 @@ class GaitController {
     uint32_t next_step_time_;
 
     void setPin_(uint8_t pin, bool value);
-
-    LegController* leg_[LEG_SIDES_X][LEG_SIDES_Y];
 };
 
 #endif /* GAITCONTROLLER_H */

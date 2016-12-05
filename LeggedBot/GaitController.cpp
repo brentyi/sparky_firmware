@@ -5,7 +5,15 @@
 #include "GaitController.h"
 #include "Configuration.h"
 
-GaitController::GaitController(ConfigData* config) : config_(config) {
+GaitController::GaitController(const ConfigData* config) :
+  config_(config),
+  pwm_(config->pca9685_address),
+  twist_linear_(0),
+  twist_angular_(0),
+  alternate_phase_(true)
+{}
+
+void GaitController::init() {
   Wire.begin();
 
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
@@ -19,24 +27,20 @@ GaitController::GaitController(ConfigData* config) : config_(config) {
     }
   }
 
-  pwm_ = new Adafruit_PWMServoDriver(config_->pca9685_address);
-  pwm_->begin();
-  pwm_->setPWMFreq(1600);
+  pwm_.begin();
+  pwm_.setPWMFreq(1600);
   delay(500);
 
   // disable motors if battery voltage too low (ie powered by USB)
   pinMode(config_->batt_pin, INPUT);
   setPin_(config_->enable_pin, getBatteryVoltage() > config_->voltage_cutoff);
 
-  pwm_->setPin(config_->led_channel, 4095);
+  pwm_.setPin(config_->led_channel, 4095);
   delay(500);
-  pwm_->setPin(config_->led_channel, 0);
+  pwm_.setPin(config_->led_channel, 0);
   delay(500);
-  pwm_->setPin(config_->led_channel, 4095);
+  pwm_.setPin(config_->led_channel, 4095);
 
-  twist_linear_ = 0;
-  twist_angular_ = 0;
-  alternate_phase_ = true;
   next_step_time_ = millis();
 }
 
@@ -83,7 +87,7 @@ void GaitController::update() {
 
       setPin_(config_->hbridge_pin_a[x][y], effort > 0);
       setPin_(config_->hbridge_pin_b[x][y], effort < 0);
-      pwm_->setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
+      pwm_.setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
     }
   }
 
@@ -99,7 +103,7 @@ void GaitController::setPin_(uint8_t pin, bool value) {
   if (pin < 100)
     digitalWrite(pin, value);
   else
-    pwm_->setPin(pin - 100, value ? 4095 : 0);
+    pwm_.setPin(pin - 100, value ? 4095 : 0);
 }
 
 /**
@@ -126,9 +130,9 @@ float GaitController::getBatteryVoltage() {
 void GaitController::fault() {
   setPin_(config_->enable_pin, LOW);
   for (;;) {
-    pwm_->setPin(config_->led_channel, 4095);
+    pwm_.setPin(config_->led_channel, 4095);
     delay(1000);
-    pwm_->setPin(config_->led_channel, 0);
+    pwm_.setPin(config_->led_channel, 0);
     delay(1000);
   }
 }

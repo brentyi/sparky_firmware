@@ -4,18 +4,24 @@
 #include "Configuration.h"
 #include "LegController.h"
 
-LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) : config_(config) {
-  // Encoder setup
-  encoder_.address = config->as5048b_address[x][y];
-  zero_ = config->leg_zero[x][y];
-  invert_encoder_ = config->invert_encoder[x][y];
+LegController::LegController(const ConfigData* config, LegSideX x, LegSideY y) :
+  config_(config),
+  encoder_(config->as5048b_address[x][y]),
+  zero_(config->leg_zero[x][y]),
+  invert_encoder_ (config->invert_encoder[x][y]),
+  travel_arrived_(true),
+  travel_start_position_(0),
+  travel_end_position_(0),
+  position_setpoint_(0),
+  feedback_effort_(0),
+  mode_(PID_POSITION)
+{
+
+  // Populate leg state variables
   readState_();
   velocity_ = 0;
 
   // Travel command setup
-  travel_arrived_ = true;
-  travel_start_position_ = position_;
-  travel_end_position_ = 0;
   travel_start_time_ = millis();
   travel_end_time_ = millis();
 
@@ -28,9 +34,6 @@ LegController::LegController(ConfigData* config, LegSideX x, LegSideY y) : confi
                           config->position_kd,
                           DIRECT);
   position_pid_->SetOutputLimits(-1.0, 1.0);
-  position_setpoint_ = 0;
-  feedback_effort_ = 0;
-  mode_ = PID_POSITION;
 }
 
 /**
