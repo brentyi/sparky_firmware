@@ -21,14 +21,6 @@ void setup() {
   Serial.println("--------------------");
   gc = new GaitController(&config.data);
 
-  float voltage = gc->getBatteryVoltage();
-  Serial.print("Battery voltage: ");
-  Serial.println(voltage);
-
-  if (voltage <= config.data.voltage_cutoff && !(voltage > 4 && voltage < 4.5)) {
-    gc->fault();
-  }
-
   gc->setTwist(0, 0);
 
   ble.begin(VERBOSE_MODE);
@@ -38,14 +30,23 @@ void setup() {
   }
   ble.echo(false);
   ble.info();
-  ble.sendCommandCheckOK(F("AT+GAPDEVNAME=TEAM TEN"));
+
+  float voltage = gc->getBatteryVoltage();
+
+  char rename_cmd[40] = "AT+GAPDEVNAME=TEAM TEN ";
+  dtostrf(voltage, 4, 4, rename_cmd + strlen(rename_cmd)); // is this an acceptable way to concat a float?
+  ble.sendCommandCheckOK(rename_cmd);
   ble.verbose(false);
 
-  Serial.print("Waiting for BLE connection.... ");
+  if (voltage <= config.data.voltage_cutoff && !(voltage > 4 && voltage < 4.5)) {
+    gc->fault();
+  }
+
+  Serial.print(F("Waiting for BLE connection.... "));
   while (!ble.isConnected()) {
     delay(500);
   }
-  Serial.println("connected!");
+  Serial.println(F("connected!"));
 
   ble.setMode(BLUEFRUIT_MODE_DATA);
   ble.setBleUartRxCallback(callback);
