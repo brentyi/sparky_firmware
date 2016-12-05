@@ -6,10 +6,11 @@
 #include "BluefruitConfig.h"
 #include "GaitController.h"
 
-Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 Configuration config;
 GaitController robot(&config.data);
+
+Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 bool report_status;
 uint32_t prev_time;
