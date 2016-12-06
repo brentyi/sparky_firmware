@@ -62,6 +62,10 @@ void GaitController::update() {
           // TODO: actual math for calculating leg trajectories
           // this only does forward + back + left + right at fixed velocities
 
+          // TODO: things to implement for trajectories meant for ground contact:
+          //       - always take the shortest path (for example if the leg is already in front of the new goal)
+          //       - more aggressive feedback control? maybe an integral term?
+
           bool backwards = false;
           if (abs(twist_angular_) > 0.0001) {
             backwards = (x == 0) ^ (twist_angular_ > 0);
@@ -69,6 +73,7 @@ void GaitController::update() {
             backwards = (twist_linear_ < 0);
           }
 
+          // TODO: get rid of this travel_multiplier silliness
           float travel_multiplier = (((x + y) % 2 == 0) ^ alternate_phase_ ^ backwards) ? 1.0 : -1.0;
           leg_[x][y]->setGoal(config_->gait_contact_angle * travel_multiplier, now + config_->gait_step_duration, backwards);
         }

@@ -103,11 +103,11 @@ void callback(char data[], uint16_t len) {
       config.data.gait_contact_angle = 0.3;
       config.data.gait_step_duration = 800;
     } else if (buttnum == 3 && pressed) {
-      config.data.gait_contact_angle = 0.2;
-      config.data.gait_step_duration = 500;
+      config.data.gait_contact_angle = 0.4;
+      config.data.gait_step_duration = 600;
     } else if (buttnum == 4 && pressed) {
-      config.data.gait_contact_angle = 0.5;
-      config.data.gait_step_duration = 500;
+      config.data.gait_contact_angle = 0.7;
+      config.data.gait_step_duration = 400;
     }
 
     if (robot.getBatteryVoltage() <= config.data.voltage_cutoff) {
