@@ -23,7 +23,7 @@ class LegController {
     Encoder encoder_;
     LegController(const ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
-    void setGoal(float destination, uint32_t arrival_time, bool backwards = false);
+    void setGoal(float destination, uint32_t arrival_time, bool backwards = false, bool shortest_path = true);
 
   private:
     const ConfigData* config_;
@@ -39,6 +39,7 @@ class LegController {
 
     float velocity_;
 
+    float feedforward_effort_;
     double feedback_effort_;
 
     void readState_();
@@ -47,13 +48,10 @@ class LegController {
     const uint16_t zero_;
     const bool invert_encoder_;
 
-    bool travel_arrived_;
     float travel_start_position_;
-    float travel_end_position_;
+    float travel_total_offset_;
     uint32_t travel_start_time_;
     uint32_t travel_end_time_;
-
-    bool backwards_;
 
     static float wrapAngle_(float theta);
     float wrapAngleDirected_(float theta);

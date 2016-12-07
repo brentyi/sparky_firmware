@@ -45,6 +45,18 @@ void GaitController::init() {
 }
 
 /**
+   @brief Non-violently stand robot up.
+*/
+void GaitController::stand() {
+  uint32_t now = millis();
+  for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
+    for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
+      leg_[x][y]->setGoal(0, now + 3000, false, false);
+    }
+  }
+}
+
+/**
    @brief Update walk movements. This should be called as frequently as possible.
 */
 void GaitController::update() {
@@ -63,7 +75,6 @@ void GaitController::update() {
           // this only does forward + back + left + right at fixed velocities
 
           // TODO: things to implement for trajectories meant for ground contact:
-          //       - always take the shortest path (for example if the leg is already in front of the new goal)
           //       - more aggressive feedback control? maybe an integral term?
 
           bool backwards = false;
@@ -73,9 +84,11 @@ void GaitController::update() {
             backwards = (twist_linear_ < 0);
           }
 
-          // TODO: get rid of this travel_multiplier silliness
-          float travel_multiplier = (((x + y) % 2 == 0) ^ alternate_phase_ ^ backwards) ? 1.0 : -1.0;
-          leg_[x][y]->setGoal(config_->gait_contact_angle * travel_multiplier, now + config_->gait_step_duration, backwards);
+          if (((x + y) % 2 == 0) ^ alternate_phase_ ^ backwards) { // contacting ground
+            leg_[x][y]->setGoal(config_->gait_contact_angle, now + config_->gait_step_duration, backwards, !backwards);
+          } else { // going through air
+            leg_[x][y]->setGoal(-config_->gait_contact_angle, now + config_->gait_step_duration, backwards, backwards);
+          }
         }
         next_step_time_ = now + config_->gait_step_duration + 100;
       }

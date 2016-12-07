@@ -17,6 +17,7 @@ class GaitController {
   public:
     GaitController(const ConfigData* config);
     void init();
+    void stand();
     void update();
     void setTwist(float linear, float angular);
     float getBatteryVoltage();

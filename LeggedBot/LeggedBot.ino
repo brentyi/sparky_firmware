@@ -23,7 +23,6 @@ void setup() {
   Serial.println("--------------------");
 
   robot.init();
-  robot.setTwist(0, 0);
 
   ble.begin(VERBOSE_MODE);
   if ( ! ble.factoryReset() ) {
@@ -52,6 +51,8 @@ void setup() {
 
   ble.setMode(BLUEFRUIT_MODE_DATA);
   ble.setBleUartRxCallback(callback);
+
+  robot.stand();
 
   prev_time = millis();
 }

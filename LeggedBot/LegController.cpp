@@ -9,9 +9,8 @@ LegController::LegController(const ConfigData* config, LegSideX x, LegSideY y) :
   encoder_(config->as5048b_address[x][y]),
   zero_(config->leg_zero[x][y]),
   invert_encoder_ (config->invert_encoder[x][y]),
-  travel_arrived_(true),
   travel_start_position_(0),
-  travel_end_position_(0),
+  travel_total_offset_(0),
   position_setpoint_(0),
   feedback_effort_(0),
   mode_(PID_POSITION)
@@ -43,37 +42,23 @@ LegController::LegController(const ConfigData* config, LegSideX x, LegSideY y) :
 float LegController::calculateEffort() {
   uint32_t now = millis();
 
-  float diff; // generic angular difference -- TODO: more verbose/individual naming?
-
-  float feedforward_effort = 0;
-
   readState_();
 
   // Update setpoints based on goal
-  diff = wrapAngle_(travel_end_position_ - position_);
-  if (travel_arrived_ || travel_end_time_ <= now || abs(diff) < 0.01) {
+  if (travel_end_time_ <= now) {
     mode_ = PID_POSITION;
-    position_setpoint_ = travel_end_position_;
-    travel_arrived_ = true;
+    position_setpoint_ = travel_start_position_ + travel_total_offset_;
+    feedforward_effort_ = 0;
   } else {
-    // TODO: there's quite a bit of redundant floating point math that could be avoided by precomputing
-    if (backwards_ && diff > 0) {
-      diff -= TWO_PI;
-    } else if (!backwards_ && diff < 0) {
-      diff += TWO_PI;
-    }
-    feedforward_effort = wrapAngleDirected_(diff) * 1000.0 / (travel_end_time_ - now) * config_->velocity_ff;
-    diff = wrapAngleDirected_(travel_end_position_ - travel_start_position_);
-    diff *= now - travel_start_time_;
-    diff /= travel_end_time_ - travel_start_time_;
-    position_setpoint_ = wrapAngle_(travel_start_position_ + diff);
+    float offset = travel_total_offset_ * (now - travel_start_time_) / (travel_end_time_ - travel_start_time_);
+    position_setpoint_ = wrapAngle_(travel_start_position_ + offset);
 
     mode_ = PID_POSITION;
   }
 
   // Wrap angle for position control
   position_pid_input_ = position_;
-  diff = position_setpoint_ - position_pid_input_;
+  float diff = position_setpoint_ - position_pid_input_;
   if (diff > PI) {
     position_pid_input_ += TWO_PI;
   } else if (diff < -PI) {
@@ -93,7 +78,7 @@ float LegController::calculateEffort() {
 
   position_pid_->Compute();
 
-  return constrain(feedback_effort_ + feedforward_effort, -1.0, 1.0);
+  return constrain(feedback_effort_ + feedforward_effort_, -1.0, 1.0);
 }
 
 /**
@@ -122,30 +107,20 @@ float LegController::wrapAngle_(float theta) {
 }
 
 /**
-   @brief Helper for normalizing angles relative to our travel direction.
-   @param theta Angle to normalize
-*/
-float LegController::wrapAngleDirected_(float theta) {
-  theta = wrapAngle_(theta);
-  if (backwards_ && theta > 0) {
-    return theta - TWO_PI;
-  } else if (!backwards_ && theta < 0) {
-    return theta + TWO_PI;
-  }
-  return theta;
-}
-
-/**
    @brief Set a desired leg position, at a given time.
    @param destination Goal position, in radians.
    @param arrival_time Expected arrival time for our goal position, in milliseconds.
    @param backwards Use backwards leg movement.
 */
-void LegController::setGoal(float destination, uint32_t arrival_time, bool backwards) {
+void LegController::setGoal(float destination, uint32_t arrival_time, bool backwards, bool shortest_path) {
   travel_start_position_ = position_;
-  travel_end_position_ = destination;
   travel_start_time_ = millis();
   travel_end_time_ = arrival_time;
-  backwards_ = backwards;
-  travel_arrived_ = false;
+
+  travel_total_offset_ = wrapAngle_(destination - travel_start_position_);
+  if (!shortest_path && abs(travel_total_offset_) < PI) {
+    travel_total_offset_ += backwards ? -TWO_PI : TWO_PI;
+  }
+
+  feedforward_effort_ = travel_total_offset_ * 1000.0 / (travel_end_time_ - travel_start_time_) * config_->velocity_ff;
 }
