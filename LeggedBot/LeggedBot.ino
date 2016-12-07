@@ -98,14 +98,14 @@ void callback(char data[], uint16_t len) {
     } else if (buttnum >= 5 && buttnum <= 8 && !pressed) {
       robot.setTwist(0, 0);
     } else if (buttnum == 1 && pressed) {
+      config.data.leg_offset += PI;
+      config.data.leg_offset = fmod(config.data.leg_offset, TWO_PI);
+    } else if (buttnum == 2 && pressed) {
       config.data.gait_contact_angle = 0.2;
       config.data.gait_step_duration = 800;
-    } else if (buttnum == 2 && pressed) {
+    } else if (buttnum == 3 && pressed) {
       config.data.gait_contact_angle = 0.3;
       config.data.gait_step_duration = 800;
-    } else if (buttnum == 3 && pressed) {
-      config.data.gait_contact_angle = 0.4;
-      config.data.gait_step_duration = 600;
     } else if (buttnum == 4 && pressed) {
       config.data.gait_contact_angle = 0.7;
       config.data.gait_step_duration = 400;

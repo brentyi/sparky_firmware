@@ -39,39 +39,45 @@ typedef struct ConfigData {
   float position_kd{0.004};
   float velocity_ff{0.112};
 
-  // Encoder offsets for each leg
-  uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};
-
   // Shared angular offset (radians)
   float leg_offset{0};
 
+  // Encoder offsets for each leg
+  const uint16_t leg_zero[LEG_SIDES_X][LEG_SIDES_Y] {{16127, 11174, 942}, {4136, 10163, 10318}};
+
   // I2C addresses
-  uint8_t as5048b_address[LEG_SIDES_X][LEG_SIDES_Y] {{0b1000000, 0b1000110, 0b1000101}, {0b1000100, 0b1000111, 0b1000001}};
-  uint8_t pca9685_address{0b1100000};
+  const uint8_t as5048b_address[LEG_SIDES_X][LEG_SIDES_Y] {{0b1000000, 0b1000110, 0b1000101}, {0b1000100, 0b1000111, 0b1000001}};
+  const uint8_t pca9685_address{0b1100000};
 
   // Invert values?
-  bool invert_encoder[LEG_SIDES_X][LEG_SIDES_Y] {{false, false, false}, {true, true, true}};
-  bool invert_motor[LEG_SIDES_X][LEG_SIDES_Y] {{true, false, false}, {true, true, false}};
+  const bool invert_encoder[LEG_SIDES_X][LEG_SIDES_Y] {{false, false, false}, {true, true, true}};
+  const bool invert_motor[LEG_SIDES_X][LEG_SIDES_Y] {{true, false, false}, {true, true, false}};
 
   //
   // Pin numbers >100 represent channels on our PWM mux (-100)
   //
 
   // PWM channel numbering
-  uint8_t pwm_channel[LEG_SIDES_X][LEG_SIDES_Y] {{14, 12, 10}, {13, 11, 9}};
+  const uint8_t pwm_channel[LEG_SIDES_X][LEG_SIDES_Y] {{14, 12, 10}, {13, 11, 9}};
 
   // Voltage reading
-  uint8_t batt_pin{A0};
+  const uint8_t batt_pin {
+    A0
+  };
 
   // Button LED
-  uint8_t led_channel{8};
+  const uint8_t led_channel {
+    8
+  };
 
   // Motor driver enable
-  uint8_t enable_pin{103};
+  const uint8_t enable_pin {
+    103
+  };
 
   // H-bridge direction pins
-  int8_t hbridge_pin_a[LEG_SIDES_X][LEG_SIDES_Y] {{A3, 5, 6}, {8, 104, 3}};
-  int8_t hbridge_pin_b[LEG_SIDES_X][LEG_SIDES_Y] {{A2, 4, 7}, {A1, 105, 2}};
+  const int8_t hbridge_pin_a[LEG_SIDES_X][LEG_SIDES_Y] {{A3, 5, 6}, {8, 104, 3}};
+  const int8_t hbridge_pin_b[LEG_SIDES_X][LEG_SIDES_Y] {{A2, 4, 7}, {A1, 105, 2}};
 
 } ConfigData;
 

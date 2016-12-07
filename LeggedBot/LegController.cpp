@@ -88,7 +88,7 @@ void LegController::readState_() {
   uint32_t now = millis();
 
   int16_t raw_angle = (int16_t)encoder_.read() - zero_;
-  float new_position = wrapAngle_(raw_angle / 8192.0 * PI);
+  float new_position = wrapAngle_(raw_angle / 8192.0 * PI  + config_->leg_offset);
   if (invert_encoder_) {
     new_position = -new_position;
   }
