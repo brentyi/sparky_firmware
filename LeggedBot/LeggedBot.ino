@@ -6,7 +6,6 @@
 #include "BluefruitConfig.h"
 #include "GaitController.h"
 
-
 Configuration config;
 GaitController robot(&config.data);
 
@@ -17,9 +16,7 @@ uint32_t prev_time;
 
 void setup() {
   Serial.begin(115200);
-
   delay(500);
-
   Serial.println("--------------------");
 
   robot.init();
@@ -86,7 +83,6 @@ void callback(char data[], uint16_t len) {
   if (data[1] == 'B') { //buttons
     uint8_t buttnum = data[2] - '0';
     boolean pressed = data[3] - '0';
-    Serial.print ("Button "); Serial.println(buttnum);
     if (buttnum == 5 && pressed) {
       robot.setTwist(1, 0);
     } else if (buttnum == 6 && pressed) {
@@ -98,8 +94,7 @@ void callback(char data[], uint16_t len) {
     } else if (buttnum >= 5 && buttnum <= 8 && !pressed) {
       robot.setTwist(0, 0);
     } else if (buttnum == 1 && pressed) {
-      config.data.leg_offset += PI;
-      config.data.leg_offset = fmod(config.data.leg_offset, TWO_PI);
+      config.data.leg_offset = fmod(config.data.leg_offset + PI, TWO_PI);
     } else if (buttnum == 2 && pressed) {
       config.data.gait_contact_angle = 0.2;
       config.data.gait_step_duration = 800;

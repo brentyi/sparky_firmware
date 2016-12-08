@@ -103,7 +103,10 @@ void LegController::readState_() {
    @param theta Angle to normalize
 */
 float LegController::wrapAngle_(float theta) {
-  return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
+  while (theta > PI) theta -= TWO_PI;
+  while (theta <= -PI) theta += TWO_PI;
+  return theta;
+  //return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
 }
 
 /**

@@ -105,7 +105,7 @@ void GaitController::update() {
 
       setPin_(config_->hbridge_pin_a[x][y], effort > 0);
       setPin_(config_->hbridge_pin_b[x][y], effort < 0);
-      pwm_.setPin(config_->pwm_channel[x][y], (uint16_t) abs(effort));
+      pwm_.setPin(config_->pwm_channel[x][y], static_cast<uint16_t>(abs(effort)));
     }
   }
 
