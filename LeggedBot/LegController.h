@@ -2,7 +2,7 @@
    @file LegController.h
    @author TEAM TEN
    @version 1.0
-   @brief Position and velocity controller for individual robot legs.
+   @brief Trajectory follower for individual robot legs.
 */
 
 #ifndef LEGCONTROLLER_H
@@ -20,15 +20,16 @@ typedef enum ControlMode {
 
 class LegController {
   public:
-    Encoder encoder_;
     LegController(const ConfigData* config, LegSideX x, LegSideY y);
     float calculateEffort();
-    void setGoal(float destination, uint32_t arrival_time, bool backwards = false, bool shortest_path = true);
+    void setGoal(float destination, uint32_t arrival_time, bool backwards = false, bool shortest_path = true, bool force_direction = false);
 
   private:
     const ConfigData* config_;
 
     ControlMode mode_;
+
+    Encoder encoder_;
 
     PID* position_pid_;
 

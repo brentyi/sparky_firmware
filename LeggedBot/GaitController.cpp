@@ -51,7 +51,7 @@ void GaitController::stand() {
   next_step_time_ = millis() + 1000;
   for (uint8_t x = 0; x < LEG_SIDES_X; x++) {
     for (uint8_t y = 0; y < LEG_SIDES_Y; y++) {
-      leg_[x][y]->setGoal(0, next_step_time_, false, false);
+      leg_[x][y]->setGoal(0, next_step_time_, false, true, true);
     }
   }
 }

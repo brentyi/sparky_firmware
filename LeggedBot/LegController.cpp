@@ -12,6 +12,7 @@ LegController::LegController(const ConfigData* config, LegSideX x, LegSideY y) :
   travel_start_position_(0),
   travel_total_offset_(0),
   position_setpoint_(0),
+  position_(0),
   feedback_effort_(0),
   mode_(PID_POSITION)
 {
@@ -103,10 +104,12 @@ void LegController::readState_() {
    @param theta Angle to normalize
 */
 float LegController::wrapAngle_(float theta) {
+  if (theta > 20 || theta < - 20)
+    return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
+
   while (theta > PI) theta -= TWO_PI;
   while (theta <= -PI) theta += TWO_PI;
   return theta;
-  //return fmod(fmod(theta + PI, TWO_PI) + TWO_PI, TWO_PI) - PI;
 }
 
 /**
@@ -114,14 +117,17 @@ float LegController::wrapAngle_(float theta) {
    @param destination Goal position, in radians.
    @param arrival_time Expected arrival time for our goal position, in milliseconds.
    @param backwards Use backwards leg movement.
+   @param shortest_path Use shortest possible leg movement. (overrides direction)
+   @param force_direction Increase priority of movement direction. (overrides shortest path)
 */
-void LegController::setGoal(float destination, uint32_t arrival_time, bool backwards, bool shortest_path) {
+void LegController::setGoal(float destination, uint32_t arrival_time, bool backwards, bool shortest_path, bool force_direction) {
   travel_start_position_ = position_;
   travel_start_time_ = millis();
   travel_end_time_ = arrival_time;
 
   travel_total_offset_ = wrapAngle_(destination - travel_start_position_);
-  if (!shortest_path && abs(travel_total_offset_) < PI) {
+  if ((!shortest_path && abs(travel_total_offset_) < PI)
+      || (force_direction && backwards != (travel_total_offset_ < 0))) {
     travel_total_offset_ += backwards ? -TWO_PI : TWO_PI;
   }
 
