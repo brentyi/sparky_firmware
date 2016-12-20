@@ -1,4 +1,7 @@
 # Sparky firmware
+
+![sparky gif](animated.gif)
+
 Arduino sketch + associated source files for running Sparky, the [RHex](https://en.wikipedia.org/wiki/Rhex)-style hexapedal robot we designed for UC Berkeley's Introduction to Prototyping & Fabrication course.
 
 Our code's made up of a few main components:
@@ -9,7 +12,7 @@ Our code's made up of a few main components:
 
 ---
 
-[Early prototype video](https://www.youtube.com/watch?v=FYNiEJGiTPM) and relevant repositories:
+[Demo video](https://www.youtube.com/watch?v=aiBIEI0JHwY) and relevant repositories:
 - [mechanical design](https://github.com/nanditapiyer/sparky_mechanical)
 - [main control PCB](https://github.com/brentyi/sparky_electronics)
 - [absolute encoder PCB](https://github.com/brentyi/as5048b_breakout)
